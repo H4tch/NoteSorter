@@ -39,43 +39,6 @@ typedef std::string String;
 #define ESK "\033["
 #define CON_MOVETO(r,c) ESK #r ";" #c "H"
 
-/*
-namespace Console {
-	moveTo(x,y)
-	move(n, direction)
-	erase
-	color
-	style
-	scroll
-}
-namespace Cli {
-}
-*/
-
-
-#include <unistd.h>
-void getConsolePosition(int& row, int& col) {
-	return;
-	// Goto last Column, query Cursor position
-	std::cout << ESK "999C";
-	
-	// TODO Read from stdin without needing the user to press enter
-	// Maybe write out a newline? can stdout be tied to stdin?]
-	//return;
-	String input;
-	char dummy;
-	std::cout << ESK "6n\n";
-	char nl[] = "\n\n";
-	write(STDIN_FILENO, &nl, sizeof(nl));
-	std::this_thread::sleep_for( std::chrono::milliseconds(100) );
-	getline(std::cin, input);
-	std::stringstream ss( input.substr(2,32) );
-	ss >> row >> dummy >> col;
-	//Erase row
-	std::cout << " " << ESK "2K";
-}
-
-
 void mainLoop();
 void getNextNoteLine();
 void getNoteLength();
@@ -225,10 +188,7 @@ void display() {
 	for ( int i = startLine; i < endline; ++i ) {
 		if (i >= (int)lines.size()) { break; }
 		if ((i >= currentLine) && (i < noteLength + currentLine)) {
-			int row, col = 0;
-			getConsolePosition(row,col);
 			std::cout << ESK "7m " << lines[i];
-			//for ( int i = col; i < endCol; ++i ) { std::cout << " "; }
 			std::cout << ESK "0m" "\n";
 		} else {
 			std::cout << " " << lines[i] << "\n";
@@ -407,7 +367,6 @@ loadState()
 loadInputFile()
 */
 int main(int argc, char* argv[] ) {
-	//getConsolePosition(row, endCol);
 	if (argc <= 1) {
 		std::cout << "USAGE: " << String(argv[0]) << " input_file [config_file].\n";
 		return 1;
