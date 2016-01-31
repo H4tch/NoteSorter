@@ -4,6 +4,7 @@ related notes.
 
 ## Todo
 Skip command - Specify number of lines to skip
+Highlight previously chosen Destination and keep it selected for next note
 Abiltiy to group a file into Sections which can be targetted
 Secondary Mode that outputs to a single file, but can target multiple sections
 	maybe module.Systems

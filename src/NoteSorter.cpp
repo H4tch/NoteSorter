@@ -57,7 +57,7 @@ int noteLength = 1;
 std::vector<String> lines;
 String configFilename;
 std::fstream configfile;
-const int indexes = 9;
+const int indexes = 10;
 String outputFilenames[indexes];
 std::ofstream outputFiles[indexes];
 bool doQuit = false;
@@ -149,8 +149,9 @@ void getNoteLength() {
 
 void display() {
 	std::cout << "Commands:\n";
-	std::cout << "    set 1-" << indexes << " destination_file\n";
-	std::cout << "    1-" << indexes << " - Send Note to Destination File\n";
+	std::cout << "    set 1-" << (indexes-1) << " destination_file\n";
+	std::cout << "    0-" << (indexes-1) << " - Send Note to Destination File\n";
+	//std::cout << "[space]- Send note to previous destination\n";
 	//std::cout << "    a - Auto Sort Note\n";
 	//std::cout << "    u - Undo previous operation\n";
 	std::cout << "    s - Skip Note\n";
@@ -165,7 +166,7 @@ void display() {
 	// Display Output file destinations
 	std::cout << "\n";
 	for ( int i = 0; i < indexes; ++i ) {
-		std::cout << (i+1) << " " << outputFilenames[i] << "  ";
+		std::cout << i << " " << outputFilenames[i] << "  ";
 	}
 	std::cout << "\n";
 	
@@ -210,11 +211,11 @@ void parseLine(String str) {
 	ss.str(str);
 	ss >> str;
 	
-	if ( (str[0] >= '1') && (str[0] <= '9') ) {	
+	if ( (str[0] >= '0') && (str[0] <= '9') ) {	
 		int dest = std::stoi(str);
-		if ( (dest <= 0) || (dest > 9) ) { return; }
+		if ( (dest < 0) || (dest >= indexes) ) { return; }
 		for ( int i = currentLine; i < currentLine + noteLength; ++i ) {
-			outputFiles[dest-1] << lines[i] << "\n";
+			outputFiles[dest] << lines[i] << "\n";
 		}
 		removeCurrentNote();
 		return;
@@ -266,12 +267,11 @@ bool parseSetCommand(String str) {
 	if ( str == "set") {
 		int n = 0;
 		ss >> n;
-		if ( (n < 1) || (n > indexes) ) {
+		if ( (n < 0) || (n >= indexes) ) {
 			std::cout << n << "\n";
-			std::cout << "Number must be within range [1-" << indexes << "]\n";
+			std::cout << "Number must be within range [0-" << (indexes-1) << "]\n";
 			return false;
 		}
-		n -= 1;
 		
 		String filename;
 		str = ss.str();
@@ -319,8 +319,8 @@ bool saveState() {
 	std::cout << "Saving configuration to '" << configFilename << "'\n";
 	for ( int i = 0; i < indexes; ++i ) {
 		if ( !outputFilenames[i].empty() ) {
-			std::cout << "    set " << (i+1) << " " << outputFilenames[i] << "\n";
-			configfile << "set " << (i+1) << " " << outputFilenames[i] << "\n";
+			std::cout << "    set " << i << " " << outputFilenames[i] << "\n";
+			configfile << "set " << i << " " << outputFilenames[i] << "\n";
 		}
 	}
 	// Save Input File
