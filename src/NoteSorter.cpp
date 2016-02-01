@@ -244,7 +244,7 @@ void parseLine(String str) {
 	}
 	if ( str == "p" ) {
 		log.push_back("Previous");
-		--currentLine;
+		currentLine = std::max(0, --currentLine);
 		//getPrevNoteLine();
 	}
 	if ( str == "q" ) {
