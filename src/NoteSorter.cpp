@@ -39,6 +39,10 @@ typedef std::string String;
 #define ESK "\033["
 #define CON_MOVETO(r,c) ESK #r ";" #c "H"
 
+#ifndef NEWLINE_AFTER_NOTE
+	#define NEWLINE_AFTER_NOTE 1
+#endif
+
 void mainLoop();
 void getNextNoteLine();
 void getNoteLength();
@@ -144,6 +148,7 @@ void getNoteLength() {
 		{ ++line; }
 		else { break; }
 	}
+	if (NEWLINE_AFTER_NOTE && lines[line].empty()) { ++line; }
 	noteLength = line - currentLine;
 }
 
