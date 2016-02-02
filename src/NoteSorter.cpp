@@ -116,10 +116,10 @@ void getNextNoteLine() {
 bool enterSubNote() {
 	if ( noteLength <= 1 ) { return false; }
 	++currentLine;
-	//getNextNoteLine();
 	getNoteLength();
 	return true;
-	/*int indent = getIndentLevel(lines[currentLine]);
+	/*
+	int indent = getIndentLevel(lines[currentLine]);
 	int line = currentLine + 1;
 	while (line < currentLine + noteLength) {
 		if ( indent < getIndentLevel(lines[line]) ) { ++line; }
@@ -205,7 +205,12 @@ void display() {
 }
 
 void removeCurrentNote() {
+	uint32_t size = lines.size();
 	lines.erase( lines.begin() + currentLine, lines.begin() + currentLine + noteLength );
+	if ( size >= lines.size() ) {
+		std::cout << "EOROROROROROR!\n";
+		std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
+	}
 }
 
 void parseLine(String str) {
@@ -249,8 +254,8 @@ void parseLine(String str) {
 	}
 	if ( str == "p" ) {
 		log.push_back("Previous");
-		currentLine = std::max(0, --currentLine);
-		//getPrevNoteLine();
+		--currentLine;
+		currentLine = std::max(0, currentLine);
 	}
 	if ( str == "q" ) {
 		doQuit = true;
@@ -298,6 +303,9 @@ bool parseSetCommand(String str) {
 }
 
 void mainLoop() {
+	std::cout << "\033[?47h";
+	loadState();
+	loadInputFile();
 	while (!doQuit) {
 		std::cout << "\033[2J";
 		std::cout << CON_MOVETO(1,1);
@@ -308,12 +316,9 @@ void mainLoop() {
 		getline(std::cin, line);
 		parseLine( line );
 	}
-	std::cout << "Would you like to save? [y/N]: ";
-	String input;
-	getline(std::cin, input);
-	if ( input == "y" ) {
-		saveState();
-	}
+	std::cout << "\033[?47l";
+	saveState();
+	for ( int i = 0; i < indexes; ++i ) { outputFiles[i].close(); }
 	std::cout << "Quitting...\n";
 }
 
@@ -324,23 +329,25 @@ bool saveState() {
 	std::cout << "Saving configuration to '" << configFilename << "'\n";
 	for ( int i = 0; i < indexes; ++i ) {
 		if ( !outputFilenames[i].empty() ) {
-			std::cout << "    set " << i << " " << outputFilenames[i] << "\n";
 			configfile << "set " << i << " " << outputFilenames[i] << "\n";
 		}
 	}
 	// Save Input File
 	configfile.close();
 	std::fstream inputFile(inputFilename, std::fstream::out | std::fstream::trunc);
-	std::cout << "Saving '" << inputFilename << "' modifications\n";
-	for (String& line : lines) {
-		inputFile << line << "\n";
+	std::cout << "Saving source '" << inputFilename << "' modifications\n";
+	for (uint32_t i = 0; i+1 < lines.size(); ++i) {
+		inputFile << lines[i] << "\n";
 	}
+	if (!lines.empty()) { inputFile << lines.back(); }
+	
 	// Save Output Files
 	for ( int i = 0; i < indexes; ++i ) {
 		outputFiles[i].close();
 		outputFiles[i].open( outputFilenames[i], std::ofstream::out | std::ofstream::app );
 	}
 	
+	std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
 	return true;
 }
 
@@ -367,32 +374,16 @@ bool loadInputFile() {
 	return true;
 }
 
-/*
-loadState()
-loadInputFile()
-*/
 int main(int argc, char* argv[] ) {
 	if (argc <= 1) {
 		std::cout << "USAGE: " << String(argv[0]) << " input_file [config_file].\n";
 		return 1;
 	}
-	std::cout << "\033[?47h";
-	
-	if (argc > 2) {
-		configFilename = argv[2];
-		loadState();
-	}
 	
 	inputFilename = argv[1];
-	loadInputFile();
-	log.clear();
-	mainLoop();
+	if (argc > 2) { configFilename = argv[2]; }
 	
-	for ( int i = 0; i < indexes; ++i ) {
-		outputFiles[i].close();
-	}
-	std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
-	std::cout << "\033[?47l";
+	mainLoop();
 	
 	return 0;
 }
