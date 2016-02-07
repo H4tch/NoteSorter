@@ -67,7 +67,7 @@ std::ofstream outputFiles[indexes];
 bool doQuit = false;
 std::list<String> log;
 int logLength = 3;
-int intputViewLength = 20;
+int inputViewLength = 20;
 
 int endCol = 0;
 
@@ -187,8 +187,9 @@ void display() {
 	// Display Input file section
 	std::cout << ESK "36;1m" "##############################\n" ESK "0m";
 	int startLine = std::max(0, currentLine - 5);
-	int endline = startLine + ((noteLength > intputViewLength) ? noteLength : intputViewLength );
-	endline = std::min( endline, (int)lines.size()-1 );
+	//int endline = startLine + ((noteLength > inputViewLength) ? noteLength : intputViewLength );
+	//endline = std::min( endline, (int)lines.size()-1 );
+	int endline = std::min( startLine  + inputViewLength, (int)lines.size()-1 );
 	//std::cout << (endline - startLine) << "\n";
 	
 	for ( int i = startLine; i < endline; ++i ) {
@@ -205,12 +206,7 @@ void display() {
 }
 
 void removeCurrentNote() {
-	uint32_t size = lines.size();
 	lines.erase( lines.begin() + currentLine, lines.begin() + currentLine + noteLength );
-	if ( size >= lines.size() ) {
-		std::cout << "EOROROROROROR!\n";
-		std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
-	}
 }
 
 void parseLine(String str) {
@@ -319,14 +315,12 @@ void mainLoop() {
 	std::cout << "\033[?47l";
 	saveState();
 	for ( int i = 0; i < indexes; ++i ) { outputFiles[i].close(); }
-	std::cout << "Quitting...\n";
 }
 
 
 bool saveState() {
 	if (configfile.is_open()) { configfile.close(); }
 	configfile.open( configFilename, std::fstream::out | std::fstream::trunc );
-	std::cout << "Saving configuration to '" << configFilename << "'\n";
 	for ( int i = 0; i < indexes; ++i ) {
 		if ( !outputFilenames[i].empty() ) {
 			configfile << "set " << i << " " << outputFilenames[i] << "\n";
@@ -335,11 +329,13 @@ bool saveState() {
 	// Save Input File
 	configfile.close();
 	std::fstream inputFile(inputFilename, std::fstream::out | std::fstream::trunc);
-	std::cout << "Saving source '" << inputFilename << "' modifications\n";
 	for (uint32_t i = 0; i+1 < lines.size(); ++i) {
 		inputFile << lines[i] << "\n";
 	}
 	if (!lines.empty()) { inputFile << lines.back(); }
+	
+	std::cout << "Saved configuration to '" << configFilename << "'\n";
+	std::cout << "Saved '" << inputFilename << "' modifications\n";
 	
 	// Save Output Files
 	for ( int i = 0; i < indexes; ++i ) {
