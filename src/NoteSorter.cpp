@@ -80,9 +80,9 @@ int getIndentLevel(String line) {
 	return indent;
 }
 
-bool isBlankLine(int line) {
-	if ( lines[line].empty() ) { return true; }
-	for(char ch : lines[line]) {
+bool isBlankLine(String str) {
+	if ( str.empty() ) { return true; }
+	for(char ch : str) {
 		if ( !std::isspace(ch) ) { return false; }
 	}
 	return true;
@@ -107,7 +107,7 @@ bool isSymbolLine(int line) {
 void getNextNoteLine() {
 	currentLine += noteLength;
 	while (currentLine < (int)lines.size()) {
-		if (isBlankLine(currentLine)) {
+		if (isBlankLine(lines[currentLine])) {
 			++currentLine;
 		} else { break; }
 	}
@@ -161,7 +161,7 @@ void display() {
 	//std::cout << "    u - Undo previous operation\n";
 	std::cout << "    s - Skip Note\n";
 	std::cout << "    p - Previous Note\n";
-	//std::cout << "    e - Edit Note\n";
+	std::cout << "    i - Insert custom Note\n";
 	//std::cout << "  TAB - Enter into inner sub-note"
 	//std::cout << "    n - Insert Newline into previous Destination output file\n";
 	std::cout << "    d - Delete Note\n";
@@ -240,10 +240,14 @@ void parseLine(String str) {
 		}
 		return;
 	}
-	//if ( str == "e" ) {
-	//	log.push_back( String("Modified ") + std::to_string(currentLine) );
-	//	editCurrentNote();
-	//}
+	if ( str == "i" ) {
+		std::cout << "Insert Custom Note > ";
+		String line;
+		getline(std::cin, line);
+		if ( !isBlankLine(line) ) {
+			lines.insert( lines.begin() + currentLine, line );
+		}
+	}
 	if ( str == "d" ) {
 		log.push_back( String("Deleted ") + std::to_string(currentLine) );
 		removeCurrentNote();
