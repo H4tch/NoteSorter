@@ -67,7 +67,7 @@ std::ofstream outputFiles[indexes];
 bool doQuit = false;
 std::list<String> log;
 int logLength = 3;
-int inputViewLength = 20;
+int inputViewLength = 15;
 
 int endCol = 0;
 
@@ -186,7 +186,7 @@ void display() {
 	
 	// Display Input file section
 	std::cout << ESK "36;1m" "##############################\n" ESK "0m";
-	int startLine = std::max(0, currentLine - 5);
+	int startLine = std::max(0, currentLine);
 	//int endline = startLine + ((noteLength > inputViewLength) ? noteLength : intputViewLength );
 	//endline = std::min( endline, (int)lines.size()-1 );
 	int endline = std::min( startLine  + inputViewLength, (int)lines.size()-1 );
@@ -201,7 +201,7 @@ void display() {
 			std::cout << " " << lines[i] << "\n";
 		}
 	}
-	for ( int i = 0; i < 20-(endline-startLine); ++i ) { std::cout << "\n"; }
+	for ( int i = 0; i < inputViewLength-(endline-startLine); ++i ) { std::cout << "\n"; }
 	std::cout << ESK "36;1m" "##############################\n" ESK "0m";
 }
 
@@ -309,6 +309,7 @@ void mainLoop() {
 	while (!doQuit) {
 		std::cout << "\033[2J";
 		std::cout << CON_MOVETO(1,1);
+		if (currentLine >= (int)lines.size() - 1) { break; }
 		getNoteLength();
 		display();
 		std::cout << "> ";
@@ -317,6 +318,9 @@ void mainLoop() {
 		parseLine( line );
 	}
 	std::cout << "\033[?47l";
+	if (currentLine >= (int)lines.size() - 1) {
+		std::cout << "Input note file completely empty.\n";
+	}
 	saveState();
 	for ( int i = 0; i < indexes; ++i ) { outputFiles[i].close(); }
 }
